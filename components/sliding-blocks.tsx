@@ -8,7 +8,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Canvas, useThree, useFrame } from "@react-three/fiber"
-import { ContactShadows, useGLTF, useTexture } from "@react-three/drei"
+import { ContactShadows, useGLTF } from "@react-three/drei"
 import * as THREE from "three"
 
 import { audioReady, playImpact, playTone, primeBlocks, unlockAudio } from "@/lib/impact-sound"
@@ -70,9 +70,52 @@ function CameraRig({ level }: { level: Level }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  The tray: floor, faint cell grid, walls with the exit gap          */
+/*  Exit marker: a stippled ring of small dots where the hero lands    */
 /* ------------------------------------------------------------------ */
-function Room({ level }: { level: Level }) {
+function StippledRing({
+  position,
+  radius,
+  dots = 26,
+  dotR = 0.045,
+  color = KINDS.cylinder.color,
+}: {
+  position: [number, number, number]
+  radius: number
+  dots?: number
+  dotR?: number
+  color?: string
+}) {
+  return (
+    <group position={position}>
+      {Array.from({ length: dots }, (_, i) => {
+        const a = (i / dots) * Math.PI * 2
+        return (
+          <mesh
+            key={i}
+            position={[Math.cos(a) * radius, 0, Math.sin(a) * radius]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <circleGeometry args={[dotR, 12]} />
+            <meshStandardMaterial
+              color={color}
+              roughness={0.9}
+              metalness={0}
+              polygonOffset
+              polygonOffsetFactor={-2}
+            />
+          </mesh>
+        )
+      })}
+    </group>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  The tray: floor and walls with the exit gap. The first level is    */
+/*  open — one seamless klossete floor, no walls — so the toy greets   */
+/*  you bare; the stippled ring alone says where the cylinder goes.    */
+/* ------------------------------------------------------------------ */
+function Room({ level, open }: { level: Level; open: boolean }) {
   const { hx, hz } = boardHalf(level)
   const t = WALL_HALF_T
   const h = WALL_HEIGHT / 2
@@ -80,35 +123,11 @@ function Room({ level }: { level: Level }) {
   const gapX0 = level.gapX * CELL - hx
   const gapCx = gapX0 + gapW / 2
 
-  // faint cell grid so the sliding lattice reads on the plain floor
-  const grid = useMemo(() => {
-    const pts: number[] = []
-    for (let c = 1; c < level.cols; c++) {
-      const x = c * CELL - hx
-      pts.push(x, 0, -hz, x, 0, hz)
-    }
-    for (let r = 1; r < level.rows; r++) {
-      const z = r * CELL - hz
-      pts.push(-hx, 0, z, hx, 0, z)
-    }
-    const g = new THREE.BufferGeometry()
-    g.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3))
-    return g
-  }, [level.cols, level.rows, hx, hz])
-
-  const sil = useTexture("/silhouettes/cylinder-circle.png")
-  useMemo(() => {
-    sil.colorSpace = THREE.SRGBColorSpace
-    sil.anisotropy = 4
-    sil.generateMipmaps = false
-    sil.minFilter = THREE.LinearFilter
-    sil.needsUpdate = true
-  }, [sil])
-
   // top wall split around the exit gap; side + bottom walls run full length
   const leftLen = gapX0 + hx // from -hx to the gap
   const rightLen = hx - (gapX0 + gapW)
   const tongueLen = 2 * t + EXIT_TONGUE
+  const ringZ = -hz - 2 * t - EXIT_TONGUE * 0.55
 
   return (
     <>
@@ -116,60 +135,58 @@ function Room({ level }: { level: Level }) {
       <ambientLight intensity={0.5} color="#fff3e3" />
       <pointLight position={[0, 11, 2]} intensity={14} distance={50} decay={2} color="#fff0d8" />
 
-      {/* tray floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[hx * 2, hz * 2]} />
-        <meshStandardMaterial color={FLOOR_COLOR} roughness={0.95} metalness={0} />
-      </mesh>
-      <lineSegments geometry={grid} position={[0, 0.006, 0]}>
-        <lineBasicMaterial color="#8f8776" transparent opacity={0.12} />
-      </lineSegments>
+      {/* floor — the open room spans the whole view; the tray hugs the board */}
+      {open ? (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[60, 60]} />
+          <meshStandardMaterial color={FLOOR_COLOR} roughness={0.95} metalness={0} />
+        </mesh>
+      ) : (
+        <>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+            <planeGeometry args={[hx * 2, hz * 2]} />
+            <meshStandardMaterial color={FLOOR_COLOR} roughness={0.95} metalness={0} />
+          </mesh>
+          {/* the exit slot: floor tongue reaching out through the gap */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[gapCx, 0.001, -hz - tongueLen / 2]} receiveShadow>
+            <planeGeometry args={[gapW, tongueLen]} />
+            <meshStandardMaterial color={FLOOR_COLOR} roughness={0.95} metalness={0} />
+          </mesh>
+        </>
+      )}
 
-      {/* the exit slot: floor tongue reaching out through the gap, with the
-          hero's crayon silhouette marking where the cylinder should end up */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[gapCx, 0.001, -hz - tongueLen / 2]} receiveShadow>
-        <planeGeometry args={[gapW, tongueLen]} />
-        <meshStandardMaterial color={FLOOR_COLOR} roughness={0.95} metalness={0} />
-      </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[gapCx, 0.02, -hz - 2 * t - EXIT_TONGUE * 0.55]} receiveShadow>
-        <planeGeometry args={[gapW * 0.92, gapW * 0.92]} />
-        <meshStandardMaterial
-          map={sil}
-          color={KINDS.cylinder.color}
-          transparent
-          alphaTest={0.7}
-          roughness={0.95}
-          metalness={0}
-          polygonOffset
-          polygonOffsetFactor={-1}
-        />
-      </mesh>
+      {/* stippled outline where the cylinder should end up */}
+      <StippledRing position={[gapCx, 0.02, ringZ]} radius={CELL * 0.92} />
 
       {/* walls — the top wall leaves the 2-cell exit gap open */}
-      {leftLen > EPS && (
-        <mesh position={[-hx + leftLen / 2, h, -(hz + t)]} castShadow receiveShadow>
-          <boxGeometry args={[leftLen, WALL_HEIGHT, 2 * t]} />
-          <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
-        </mesh>
+      {!open && (
+        <>
+          {leftLen > EPS && (
+            <mesh position={[-hx + leftLen / 2, h, -(hz + t)]} castShadow receiveShadow>
+              <boxGeometry args={[leftLen, WALL_HEIGHT, 2 * t]} />
+              <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
+            </mesh>
+          )}
+          {rightLen > EPS && (
+            <mesh position={[hx - rightLen / 2, h, -(hz + t)]} castShadow receiveShadow>
+              <boxGeometry args={[rightLen, WALL_HEIGHT, 2 * t]} />
+              <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
+            </mesh>
+          )}
+          <mesh position={[0, h, hz + t]} castShadow receiveShadow>
+            <boxGeometry args={[hx * 2 + 4 * t, WALL_HEIGHT, 2 * t]} />
+            <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
+          </mesh>
+          <mesh position={[-(hx + t), h, 0]} castShadow receiveShadow>
+            <boxGeometry args={[2 * t, WALL_HEIGHT, hz * 2 + 4 * t]} />
+            <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
+          </mesh>
+          <mesh position={[hx + t, h, 0]} castShadow receiveShadow>
+            <boxGeometry args={[2 * t, WALL_HEIGHT, hz * 2 + 4 * t]} />
+            <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
+          </mesh>
+        </>
       )}
-      {rightLen > EPS && (
-        <mesh position={[hx - rightLen / 2, h, -(hz + t)]} castShadow receiveShadow>
-          <boxGeometry args={[rightLen, WALL_HEIGHT, 2 * t]} />
-          <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
-        </mesh>
-      )}
-      <mesh position={[0, h, hz + t]} castShadow receiveShadow>
-        <boxGeometry args={[hx * 2 + 4 * t, WALL_HEIGHT, 2 * t]} />
-        <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
-      </mesh>
-      <mesh position={[-(hx + t), h, 0]} castShadow receiveShadow>
-        <boxGeometry args={[2 * t, WALL_HEIGHT, hz * 2 + 4 * t]} />
-        <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
-      </mesh>
-      <mesh position={[hx + t, h, 0]} castShadow receiveShadow>
-        <boxGeometry args={[2 * t, WALL_HEIGHT, hz * 2 + 4 * t]} />
-        <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
-      </mesh>
     </>
   )
 }
@@ -254,10 +271,12 @@ type SceneApi = { undo: () => void; reset: () => void }
 
 function Scene({
   level,
+  open,
   onWin,
   apiRef,
 }: {
   level: Level
+  open: boolean
   onWin: (moves: number) => void
   apiRef: React.MutableRefObject<SceneApi | null>
 }) {
@@ -517,7 +536,7 @@ function Scene({
         color="#332b20"
       />
 
-      <Room level={level} />
+      <Room level={level} open={open} />
 
       {pieces.map((p, i) => (
         <group
@@ -618,7 +637,7 @@ export default function SlidingBlocks() {
         <color attach="background" args={[BG]} />
         <CameraRig level={level} />
         <Suspense fallback={null}>
-          <Scene key={`${level.id}:${run}`} level={level} onWin={onWin} apiRef={apiRef} />
+          <Scene key={`${level.id}:${run}`} level={level} open={levelIdx === 0} onWin={onWin} apiRef={apiRef} />
         </Suspense>
         <PostFx />
       </Canvas>

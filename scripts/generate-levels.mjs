@@ -14,7 +14,7 @@
 //
 // Usage: node scripts/generate-levels.mjs   (writes lib/levels.json)
 
-import { writeFileSync } from "node:fs"
+import { readFileSync, writeFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
 
@@ -207,16 +207,36 @@ const SPECS = [
 // Random scatter + solve under a per-level time budget. Layouts solvable in
 // fewer moves than the band are cheap to reject (BFS stops at the first win),
 // so the budget is spent probing for the rare deep ones. We keep the hardest
-// layout inside the band, falling back to the hardest found at all.
+// layout inside the band, falling back to the closest one found — capped a
+// little above the band so a freak 100+-move monster never ships.
+//
+// ONLY=l22,l23 SEED_BUMP=1000 regenerates just those specs, keeping the rest
+// from the existing lib/levels.json (ids must still match the spec ids).
 const BUDGET_MS = Number(process.env.BUDGET_MS ?? 90000)
+const ONLY = process.env.ONLY ? process.env.ONLY.split(",") : null
+const SEED_BUMP = Number(process.env.SEED_BUMP ?? 0)
+const here0 = dirname(fileURLToPath(import.meta.url))
+const existing = ONLY
+  ? JSON.parse(readFileSync(join(here0, "../lib/levels.json"), "utf8"))
+  : []
 
 const out = []
 for (const spec of SPECS) {
-  const rnd = mulberry(spec.seed)
+  if (ONLY && !ONLY.includes(spec.id)) {
+    const keep = existing.find((l) => l.id === spec.id)
+    if (!keep) {
+      console.error(`ONLY mode: ${spec.id} missing from lib/levels.json`)
+      process.exit(1)
+    }
+    out.push(keep)
+    continue
+  }
+  const rnd = mulberry(spec.seed + SEED_BUMP)
   const gapX =
     spec.gap === "left" ? 1 : spec.gap === "right" ? spec.cols - 3 : Math.floor(spec.cols / 2) - 1
   let best = null // hardest inside the band
-  let hardest = null // hardest solvable overall
+  let under = null // hardest below the band
+  let over = null // gentlest above the band (still capped when chosen)
   const t0 = Date.now()
   let trials = 0
   while (Date.now() - t0 < BUDGET_MS) {
@@ -226,11 +246,19 @@ for (const spec of SPECS) {
     const level = { cols: spec.cols, rows: spec.rows, gapX, pieces }
     const { moves } = solve(level, 150000)
     if (moves <= 0) continue
-    if (!hardest || moves > hardest.moves) hardest = { ...level, moves }
-    if (moves >= spec.band[0] && moves <= spec.band[1] && (!best || moves > best.moves)) best = { ...level, moves }
+    if (moves < spec.band[0]) {
+      if (!under || moves > under.moves) under = { ...level, moves }
+    } else if (moves > spec.band[1]) {
+      if (!over || moves < over.moves) over = { ...level, moves }
+    } else if (!best || moves > best.moves) {
+      best = { ...level, moves }
+    }
     if (best && best.moves >= spec.band[1]) break
   }
-  if (!best) best = hardest
+  // fall back to whichever near-miss sits closest to the band, never shipping
+  // anything more than a few moves past its ceiling
+  if (!best && over && over.moves <= spec.band[1] + 6) best = over
+  if (!best) best = under ?? (over && over.moves <= spec.band[1] + 12 ? over : null)
   if (!best) {
     console.error(`FAILED to generate ${spec.id}`)
     process.exit(1)
