@@ -200,6 +200,13 @@ type DragState = {
   lastImpact: number
 }
 
+// entrance drop: pieces fall onto the board one after another when a level
+// opens, each landing with a soft knock; a held piece rides a little higher
+const INTRO_STAGGER = 0.07 // s between one piece's fall and the next
+const INTRO_FALL = 0.42 // s a single piece spends falling
+const INTRO_DROP = 2.4 // world units above the floor the fall starts from
+const DRAG_LIFT = 0.09 // world units a grabbed piece hovers
+
 type SceneApi = { undo: () => void; reset: () => void }
 
 function Scene({
@@ -224,6 +231,10 @@ function Scene({
   const drag = useRef<DragState | null>(null)
   const winning = useRef(false)
   const done = useRef(false)
+  // entrance + grab-feel animation state
+  const introT = useRef(0)
+  const landed = useRef<boolean[]>(level.pieces.map(() => false))
+  const lifts = useRef<number[]>(level.pieces.map(() => 0))
 
   const dims = useMemo(() => level.pieces.map((p) => footprint(p.kind, p.rot)), [level])
 
@@ -275,6 +286,8 @@ function Scene({
   const grabPiece = useCallback(
     (idx: number) => (e: { point: THREE.Vector3; stopPropagation: () => void }) => {
       if (winning.current || drag.current) return
+      // let the entrance finish before a piece can be grabbed mid-air
+      if (introT.current < idx * INTRO_STAGGER + INTRO_FALL) return
       e.stopPropagation()
       const p = pieces[idx]
       drag.current = {
@@ -417,7 +430,7 @@ function Scene({
     }
   }, [pieces, dims, level, worldPoint, gl])
 
-  // place the meshes every frame; run the win glide
+  // place the meshes every frame; run the drop-in entrance and the win glide
   useFrame((_, delta) => {
     if (winning.current && !done.current) {
       const hero = pieces[0]
@@ -433,11 +446,31 @@ function Scene({
         onWin(history.current.length - 1)
       }
     }
+    // clamp the step so a long first frame (asset load, tab hitch) can't
+    // fast-forward the entrance to its end before anyone sees it
+    introT.current += Math.min(delta, 1 / 30)
     pieces.forEach((p, i) => {
       const g = groupRefs.current[i]
       if (!g) return
       const [w, h] = dims[i]
-      g.position.set((p.x + w / 2) * CELL - hx, (KINDS[p.kind].heightMm * S) / 2, (p.y + h / 2) * CELL - hz)
+      // entrance: each piece falls onto the board in turn, landing with a knock
+      const k = Math.min(1, Math.max(0, (introT.current - i * INTRO_STAGGER) / INTRO_FALL))
+      const ease = 1 - Math.pow(1 - k, 3)
+      if (k >= 1 && !landed.current[i]) {
+        landed.current[i] = true
+        if (introT.current < pieces.length * INTRO_STAGGER + 1) {
+          playImpact(p.kind, 0.22)
+          if (navigator.vibrate) navigator.vibrate(6)
+        }
+      }
+      // a light lift while a piece is being dragged, eased both ways
+      const liftTarget = drag.current?.idx === i ? DRAG_LIFT : 0
+      lifts.current[i] += (liftTarget - lifts.current[i]) * Math.min(1, delta * 14)
+      g.position.set(
+        (p.x + w / 2) * CELL - hx,
+        (KINDS[p.kind].heightMm * S) / 2 + (1 - ease) * INTRO_DROP + lifts.current[i],
+        (p.y + h / 2) * CELL - hz,
+      )
     })
   })
 
