@@ -96,6 +96,17 @@ function Room({ level }: { level: Level }) {
     [gapX1, hx, -R, -hz], // above, right of the channel
   ]
 
+  // per-face slab materials: the TOP face is unlit, over-unity white so the
+  // elevated surround reads as solid paper-white with no lighting gradient;
+  // the side faces stay lit so the pocket and channel walls keep their shading
+  const slabMats = useMemo(() => {
+    const side = new THREE.MeshStandardMaterial({ color: WALL_COLOR, roughness: 0.92, metalness: 0 })
+    const top = new THREE.MeshBasicMaterial({ toneMapped: false })
+    top.color.setRGB(1.6, 1.6, 1.6) // clamps to exact #ffffff
+    // box face order: +x, -x, +y (top), -y, +z, -z
+    return [side, side, top, side, side, side]
+  }, [])
+
   return (
     <>
       {/* neutral white fill so unshadowed surfaces read as paper-white */}
@@ -115,9 +126,9 @@ function Room({ level }: { level: Level }) {
             position={[(x0 + x1) / 2, WALL_HEIGHT / 2, (z0 + z1) / 2]}
             castShadow
             receiveShadow
+            material={slabMats}
           >
             <boxGeometry args={[x1 - x0, WALL_HEIGHT, z1 - z0]} />
-            <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
           </mesh>
         ) : null,
       )}
@@ -243,12 +254,13 @@ function Scene({
 
   const dims = useMemo(() => level.pieces.map((p) => footprint(p.kind, p.rot)), [level])
 
-  // dev-only: expose the live board so end-to-end tests can assert positions
+  // dev-only: expose the live board (and the entrance clock) so end-to-end
+  // tests can assert positions and wait out the drop-in before dragging
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
-      ;(window as unknown as { __blokk?: unknown }).__blokk = { level, pieces }
+      ;(window as unknown as { __blokk?: unknown }).__blokk = { level, pieces, introT }
     }
-  }, [level, pieces])
+  }, [level, pieces, introT])
 
   const applySnapshot = useCallback(
     (snap: number[]) => {
@@ -602,7 +614,9 @@ export default function SlidingBlocks() {
         gl={{ antialias: true, preserveDrawingBuffer: false, powerPreference: "high-performance" }}
         camera={{ position: [0, 30, 0], fov: CAM_FOV, near: 0.1, far: 200 }}
         onCreated={({ gl }) => {
-          gl.toneMapping = THREE.NoToneMapping // ACES runs in the post stack
+          // Khronos-neutral in the renderer (per material) — lets the slab
+          // tops and backdrop skip tone mapping and clamp at exact #ffffff
+          gl.toneMapping = THREE.NeutralToneMapping
           gl.domElement.style.cursor = "grab"
         }}
         style={{ touchAction: "none" }}
