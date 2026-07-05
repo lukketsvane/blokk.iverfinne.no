@@ -41,6 +41,10 @@ levels.
 
 - `pnpm levels` – regenerate the level set
 - `pnpm solve` – re-validate `lib/levels.json` against the solver
+- `node scripts/e2e-playthrough.mjs` – play every level to completion in a
+  real browser (needs a running dev server, `playwright-core` and Chromium):
+  each BFS solution is replayed as actual pointer drags with per-move
+  position assertions
 
 ## Getting started
 

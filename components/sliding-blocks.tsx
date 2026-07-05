@@ -308,15 +308,21 @@ function Scene({
   )
 
   const grabPiece = useCallback(
-    (idx: number) => (e: { point: THREE.Vector3; stopPropagation: () => void }) => {
+    (idx: number) => (e: { ray: THREE.Ray; stopPropagation: () => void }) => {
       if (winning.current || drag.current) return
       // let the entrance finish before a piece can be grabbed mid-air
       if (introT.current < idx * INTRO_STAGGER + INTRO_FALL) return
       e.stopPropagation()
+      // reference the grab on the FLOOR plane — the same plane every later
+      // pointermove is projected onto. Using the raycast hit itself (on a tall
+      // piece's top face) baked its parallax offset into the grab, so the
+      // piece jumped up to a cell the moment you started dragging it.
+      const pt = new THREE.Vector3()
+      if (!e.ray.intersectPlane(floorPlane, pt)) return
       const p = pieces[idx]
       drag.current = {
         idx,
-        grab: e.point.clone(),
+        grab: pt,
         px: p.x,
         py: p.y,
         moved: false,
@@ -324,7 +330,7 @@ function Scene({
       }
       gl.domElement.style.cursor = "grabbing"
     },
-    [pieces, gl],
+    [pieces, gl, floorPlane],
   )
 
   // window-level move/up so a fast drag never escapes the piece
