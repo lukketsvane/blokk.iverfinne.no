@@ -15,7 +15,6 @@ export type LevelPiece = {
 
 export type Level = {
   id: string
-  name: string
   cols: number
   rows: number
   gapX: number // left column of the 2-wide exit gap in the top wall

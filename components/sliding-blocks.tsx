@@ -10,8 +10,8 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { Canvas, useThree, useFrame } from "@react-three/fiber"
 import { ContactShadows, useGLTF, useTexture } from "@react-three/drei"
 import * as THREE from "three"
-import { LayoutGrid, Lock, RotateCcw, Undo2, Volume2, VolumeX, X } from "lucide-react"
-import { audioReady, playImpact, playTone, primeBlocks, setMuted, unlockAudio } from "@/lib/impact-sound"
+
+import { audioReady, playImpact, playTone, primeBlocks, unlockAudio } from "@/lib/impact-sound"
 import { CELL, KINDS, MESH_FIT, S, footprint, kindBaseFreq, type PieceKind } from "@/lib/blocks"
 import { GAP_CELLS, LEVELS, type Level } from "@/lib/levels"
 import { getProgress, markSolved, setCurrent } from "@/lib/progression"
@@ -254,12 +254,10 @@ type SceneApi = { undo: () => void; reset: () => void }
 
 function Scene({
   level,
-  onMoves,
   onWin,
   apiRef,
 }: {
   level: Level
-  onMoves: (n: number) => void
   onWin: (moves: number) => void
   apiRef: React.MutableRefObject<SceneApi | null>
 }) {
@@ -277,8 +275,6 @@ function Scene({
 
   const dims = useMemo(() => level.pieces.map((p) => footprint(p.kind, p.rot)), [level])
 
-  const syncMoves = useCallback(() => onMoves(history.current.length - 1), [onMoves])
-
   const applySnapshot = useCallback(
     (snap: number[]) => {
       pieces.forEach((p, i) => {
@@ -295,20 +291,20 @@ function Scene({
         if (drag.current || winning.current || history.current.length <= 1) return
         history.current.pop()
         applySnapshot(history.current[history.current.length - 1])
-        syncMoves()
+
       },
       reset: () => {
         if (winning.current) return
         drag.current = null
         history.current = [history.current[0]]
         applySnapshot(history.current[0])
-        syncMoves()
+
       },
     }
     return () => {
       apiRef.current = null
     }
-  }, [apiRef, applySnapshot, syncMoves])
+  }, [apiRef, applySnapshot])
 
   // pointer -> a point on the floor plane
   const ray = useMemo(() => new THREE.Raycaster(), [])
@@ -420,7 +416,7 @@ function Scene({
         winning.current = true
         if (d.px !== level.gapX || d.py !== 0) {
           history.current.push(pieces.flatMap((q) => [q.x, q.y]))
-          syncMoves()
+
         }
         gl.domElement.style.cursor = "grab"
       }
@@ -445,7 +441,7 @@ function Scene({
         winning.current = true
         if (d.px !== level.gapX || d.py !== 0) {
           history.current.push(pieces.flatMap((q) => [q.x, q.y]))
-          syncMoves()
+
         }
         return
       }
@@ -454,7 +450,7 @@ function Scene({
       if (sx !== d.px || sy !== d.py) {
         playImpact(p.kind, 0.16)
         history.current.push(pieces.flatMap((q) => [q.x, q.y]))
-        syncMoves()
+
       }
       void h
     }
@@ -467,7 +463,7 @@ function Scene({
       window.removeEventListener("pointerup", onUp)
       window.removeEventListener("pointercancel", onUp)
     }
-  }, [pieces, dims, level, worldPoint, gl, syncMoves])
+  }, [pieces, dims, level, worldPoint, gl])
 
   // place the meshes every frame; run the win glide
   useFrame((_, delta) => {
@@ -539,16 +535,14 @@ function Scene({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Shell: canvas + HUD + overlays                                      */
+/*  Shell: just the canvas. No text, no buttons — the toy is the UI.    */
+/*  Every slide is reversible by sliding back, progression is           */
+/*  automatic, and desktop gets invisible shortcuts (Z undo, R reset,   */
+/*  digits jump levels).                                                */
 /* ------------------------------------------------------------------ */
 export default function SlidingBlocks() {
   const [levelIdx, setLevelIdx] = useState(0)
-  const [moves, setMoves] = useState(0)
-  const [won, setWon] = useState<null | { moves: number }>(null)
-  const [pickerOpen, setPickerOpen] = useState(false)
-  const [muted, setMutedState] = useState(false)
-  const [unlocked, setUnlocked] = useState(0)
-  const [best, setBest] = useState<Record<string, number>>({})
+  const [run, setRun] = useState(0) // bump to force a fresh board even for the same level
   const apiRef = useRef<SceneApi | null>(null)
   const level = LEVELS[Math.min(levelIdx, LEVELS.length - 1)]
 
@@ -556,8 +550,6 @@ export default function SlidingBlocks() {
   useEffect(() => {
     const p = getProgress()
     setLevelIdx(Math.min(p.current, LEVELS.length - 1))
-    setUnlocked(Math.min(p.current, LEVELS.length - 1))
-    setBest(p.best)
   }, [])
 
   // audio unlock: retried across gesture types until the context runs (iOS)
@@ -583,34 +575,32 @@ export default function SlidingBlocks() {
   const gotoLevel = useCallback((i: number) => {
     const idx = Math.max(0, Math.min(i, LEVELS.length - 1))
     setLevelIdx(idx)
-    setMoves(0)
-    setWon(null)
-    setPickerOpen(false)
+    setRun((r) => r + 1)
     setCurrent(idx)
   }, [])
 
   const onWin = useCallback(
     (m: number) => {
       markSolved(level.id, m)
-      const next = Math.min(levelIdx + 1, LEVELS.length - 1)
+      // let the exit glide land, then roll on — wrapping back to the start
+      // after the last level so the loop never dead-ends
+      const next = (levelIdx + 1) % LEVELS.length
       setCurrent(Math.max(getProgress().current, next))
-      setUnlocked((u) => Math.max(u, next))
-      setBest(getProgress().best)
-      setWon({ moves: m })
-      setTimeout(() => {
-        if (levelIdx < LEVELS.length - 1) gotoLevel(levelIdx + 1)
-        else setPickerOpen(true)
-      }, 2400)
+      setTimeout(() => gotoLevel(next), 1600)
     },
     [level.id, levelIdx, gotoLevel],
   )
 
-  const toggleMute = useCallback(() => {
-    setMutedState((m) => {
-      setMuted(!m)
-      return !m
-    })
-  }, [])
+  // invisible desktop shortcuts — nothing on screen, nothing to tap
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "z" || e.key === "u") apiRef.current?.undo()
+      else if (e.key === "r") apiRef.current?.reset()
+      else if (e.key >= "1" && e.key <= "9") gotoLevel(Number(e.key) - 1)
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [gotoLevel])
 
   return (
     <div className="relative h-dvh w-full overflow-hidden" style={{ backgroundColor: BG }}>
@@ -628,153 +618,11 @@ export default function SlidingBlocks() {
         <color attach="background" args={[BG]} />
         <CameraRig level={level} />
         <Suspense fallback={null}>
-          <Scene key={level.id} level={level} onMoves={setMoves} onWin={onWin} apiRef={apiRef} />
+          <Scene key={`${level.id}:${run}`} level={level} onWin={onWin} apiRef={apiRef} />
         </Suspense>
         <PostFx />
       </Canvas>
 
-      {/* control cluster — klossete's quiet top-left column */}
-      <div
-        className="pointer-events-auto absolute z-10 flex flex-col gap-2 p-1 text-[#2a251c] opacity-55"
-        style={{
-          top: "calc(env(safe-area-inset-top, 0px) + 0.5rem)",
-          left: "calc(env(safe-area-inset-left, 0px) + 0.5rem)",
-        }}
-      >
-        <button
-          type="button"
-          aria-label="Nivå"
-          onClick={() => setPickerOpen((o) => !o)}
-          className="flex h-11 w-11 items-center justify-center transition active:scale-95"
-        >
-          <LayoutGrid className="h-5 w-5" strokeWidth={2.4} />
-        </button>
-        <button
-          type="button"
-          aria-label={muted ? "Slå på lyd" : "Demp lyd"}
-          aria-pressed={muted}
-          onClick={toggleMute}
-          className="flex h-11 w-11 items-center justify-center transition active:scale-95"
-        >
-          {muted ? <VolumeX className="h-5 w-5" strokeWidth={2.4} /> : <Volume2 className="h-5 w-5" strokeWidth={2.4} />}
-        </button>
-        <button
-          type="button"
-          aria-label="Angre"
-          onClick={() => apiRef.current?.undo()}
-          className="flex h-11 w-11 items-center justify-center transition active:scale-95 disabled:opacity-30"
-          disabled={moves === 0 || !!won}
-        >
-          <Undo2 className="h-5 w-5" strokeWidth={2.4} />
-        </button>
-        <button
-          type="button"
-          aria-label="Start nivået på nytt"
-          onClick={() => apiRef.current?.reset()}
-          className="flex h-11 w-11 items-center justify-center transition active:scale-95 disabled:opacity-30"
-          disabled={!!won}
-        >
-          <RotateCcw className="h-5 w-5" strokeWidth={2.4} />
-        </button>
-      </div>
-
-      {/* moves counter, top right */}
-      <div
-        className="pointer-events-none absolute z-10 flex flex-col items-end text-[#2a251c]"
-        style={{
-          top: "calc(env(safe-area-inset-top, 0px) + 0.9rem)",
-          right: "calc(env(safe-area-inset-right, 0px) + 1.1rem)",
-        }}
-      >
-        <span className="font-mono text-3xl font-semibold leading-none tabular-nums opacity-70">{moves}</span>
-        <span className="mt-1 text-[11px] uppercase tracking-widest opacity-45">
-          minst {level.minMoves}
-        </span>
-      </div>
-
-      {/* level name, bottom left */}
-      <div
-        className="pointer-events-none absolute z-10 text-[#2a251c]"
-        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 0.9rem)", left: "calc(env(safe-area-inset-left, 0px) + 1.1rem)" }}
-      >
-        <span className="text-[11px] uppercase tracking-widest opacity-45">
-          {levelIdx + 1} · {level.name}
-        </span>
-      </div>
-
-      {/* first-level hint until the first move */}
-      {levelIdx === 0 && moves === 0 && !won && (
-        <div
-          className="pointer-events-none absolute inset-x-0 z-10 flex justify-center px-8 text-center"
-          style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 3rem)" }}
-        >
-          <p className="max-w-xs text-sm leading-snug text-[#2a251c] opacity-60">
-            Skyv klossane til side og før den raude sylinderen ut gjennom opninga øvst.
-          </p>
-        </div>
-      )}
-
-      {/* win overlay */}
-      {won && (
-        <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center">
-          <span className="font-klossete text-6xl text-[#2a251c] drop-shadow-sm">Løyst!</span>
-          <span className="mt-3 text-sm uppercase tracking-widest text-[#2a251c] opacity-60">
-            {won.moves} trekk · minst {level.minMoves}
-          </span>
-        </div>
-      )}
-
-      {/* level picker */}
-      {pickerOpen && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-6 bg-[#cdc6b8]/95 px-6 backdrop-blur-sm">
-          <button
-            type="button"
-            aria-label="Lukk"
-            onClick={() => setPickerOpen(false)}
-            className="absolute flex h-11 w-11 items-center justify-center text-[#2a251c] opacity-55 transition active:scale-95"
-            style={{
-              top: "calc(env(safe-area-inset-top, 0px) + 0.5rem)",
-              right: "calc(env(safe-area-inset-right, 0px) + 0.5rem)",
-            }}
-          >
-            <X className="h-5 w-5" strokeWidth={2.4} />
-          </button>
-          <h1 className="font-klossete text-5xl text-[#2a251c]">bl.okk</h1>
-          <div className="grid w-full max-w-sm grid-cols-3 gap-3">
-            {LEVELS.map((l, i) => {
-              const locked = i > unlocked
-              const b = best[l.id]
-              return (
-                <button
-                  key={l.id}
-                  type="button"
-                  disabled={locked}
-                  onClick={() => gotoLevel(i)}
-                  className={`flex aspect-square flex-col items-center justify-center rounded-xl border transition active:scale-95 ${
-                    i === levelIdx
-                      ? "border-[#2a251c]/50 bg-[#c7c0b1]"
-                      : "border-[#2a251c]/15 bg-[#c7c0b1]/60"
-                  } ${locked ? "opacity-35" : ""}`}
-                >
-                  {locked ? (
-                    <Lock className="h-4 w-4 text-[#2a251c] opacity-60" strokeWidth={2.2} />
-                  ) : (
-                    <>
-                      <span className="font-klossete text-2xl text-[#2a251c] opacity-80">{i + 1}</span>
-                      <span className="mt-0.5 text-[9px] uppercase tracking-wider text-[#2a251c] opacity-45">
-                        {b !== undefined ? `${b} trekk` : l.name}
-                      </span>
-                    </>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-          <p className="text-[11px] uppercase tracking-widest text-[#2a251c] opacity-40">
-            få den raude sylinderen ut
-          </p>
-        </div>
-      )}
     </div>
   )
 }

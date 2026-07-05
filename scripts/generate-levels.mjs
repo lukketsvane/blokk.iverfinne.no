@@ -172,31 +172,49 @@ function randomLayout(spec, rnd) {
 
 // ---- level specs ---------------------------------------------------------
 // mix = blockers beyond the hero. band = [min,max] acceptable minimum moves.
+// gap = where the 2-wide exit sits in the top wall (defaults to centred).
+const PL = "plank-long"
+const PS = "plank-short"
+const CU = "cube"
+const OR = "orange"
 const SPECS = [
-  { id: "l01", name: "Fyrste steg", cols: 6, rows: 8, mix: ["plank-short"], band: [2, 3], seed: 11 },
-  { id: "l02", name: "To vener", cols: 6, rows: 8, mix: ["plank-long", "cube"], band: [3, 4], seed: 22 },
-  { id: "l03", name: "Tre på rad", cols: 6, rows: 8, mix: ["plank-long", "plank-short", "cube"], band: [5, 6], seed: 33 },
-  { id: "l04", name: "Oransje blokk", cols: 7, rows: 9, mix: ["plank-long", "plank-short", "orange"], band: [6, 8], seed: 44 },
-  { id: "l05", name: "Trongt", cols: 7, rows: 9, mix: ["plank-long", "plank-long", "plank-short", "cube"], band: [8, 10], seed: 55 },
-  { id: "l06", name: "Flokete", cols: 7, rows: 9, mix: ["plank-long", "plank-short", "plank-short", "cube", "orange"], band: [10, 12], seed: 66 },
-  { id: "l07", name: "Labyrint", cols: 8, rows: 10, mix: ["plank-long", "plank-long", "plank-short", "plank-short", "cube", "cube"], band: [12, 14], seed: 77 },
-  { id: "l08", name: "Tett i tett", cols: 8, rows: 10, mix: ["plank-long", "plank-long", "plank-short", "plank-short", "cube", "orange"], band: [14, 17], seed: 88 },
-  { id: "l09", name: "Knute", cols: 8, rows: 10, mix: ["plank-long", "plank-long", "plank-long", "plank-short", "cube", "cube", "orange"], band: [17, 20], seed: 99 },
-  { id: "l10", name: "Floke", cols: 8, rows: 10, mix: ["plank-long", "plank-long", "plank-short", "plank-short", "plank-short", "cube", "cube", "orange"], band: [20, 24], seed: 110 },
-  { id: "l11", name: "Verkstad", cols: 8, rows: 10, mix: ["plank-long", "plank-long", "plank-long", "plank-short", "plank-short", "cube", "cube", "orange"], band: [24, 28], seed: 121 },
-  { id: "l12", name: "Meisterprøva", cols: 8, rows: 10, mix: ["plank-long", "plank-long", "plank-long", "plank-short", "plank-short", "plank-short", "cube", "orange"], band: [28, 40], seed: 132 },
+  { id: "l01", cols: 6, rows: 8, mix: [PS], band: [2, 3], seed: 11 },
+  { id: "l02", cols: 6, rows: 8, mix: [PL, CU], band: [3, 4], seed: 22 },
+  { id: "l03", cols: 6, rows: 8, mix: [PL, PS, CU], band: [5, 6], seed: 33 },
+  { id: "l04", cols: 7, rows: 9, mix: [PL, PS, OR], band: [6, 8], seed: 44 },
+  { id: "l05", cols: 7, rows: 9, mix: [PL, PL, PS, CU], band: [8, 10], seed: 55 },
+  { id: "l06", cols: 7, rows: 9, mix: [PL, PS, PS, CU, OR], band: [10, 12], seed: 66 },
+  { id: "l07", cols: 8, rows: 10, mix: [PL, PL, PS, PS, CU, CU], band: [12, 14], seed: 77 },
+  { id: "l08", cols: 8, rows: 10, mix: [PL, PL, PS, PS, CU, OR], band: [14, 17], seed: 88 },
+  { id: "l09", cols: 8, rows: 10, mix: [PL, PL, PL, PS, CU, CU, OR], band: [17, 20], seed: 99 },
+  { id: "l10", cols: 8, rows: 10, mix: [PL, PL, PS, PS, PS, CU, CU, OR], band: [20, 24], seed: 110 },
+  { id: "l11", cols: 8, rows: 10, mix: [PL, PL, PL, PS, PS, CU, CU, OR], band: [24, 28], seed: 121 },
+  { id: "l12", cols: 8, rows: 11, mix: [PL, PL, PL, PS, PS, PS, CU, OR], band: [28, 40], seed: 132 },
+  { id: "l13", cols: 7, rows: 9, gap: "left", mix: [PL, PS, PS, CU, OR], band: [12, 14], seed: 143 },
+  { id: "l14", cols: 8, rows: 10, gap: "right", mix: [PL, PL, PS, PS, CU, OR], band: [14, 16], seed: 154 },
+  { id: "l15", cols: 8, rows: 10, gap: "left", mix: [PL, PL, PL, PS, CU, CU], band: [15, 17], seed: 165 },
+  { id: "l16", cols: 8, rows: 11, mix: [PL, PL, PS, PS, CU, CU, OR], band: [16, 18], seed: 176 },
+  { id: "l17", cols: 8, rows: 10, gap: "right", mix: [PL, PL, PL, PS, PS, CU, OR], band: [17, 19], seed: 187 },
+  { id: "l18", cols: 8, rows: 11, gap: "left", mix: [PL, PL, PS, PS, PS, CU, CU, OR], band: [18, 20], seed: 198 },
+  { id: "l19", cols: 9, rows: 11, mix: [PL, PL, PL, PS, PS, CU, CU, OR], band: [18, 21], seed: 209 },
+  { id: "l20", cols: 8, rows: 11, gap: "left", mix: [PL, PL, PL, PS, PS, PS, CU, OR], band: [19, 22], seed: 220 },
+  { id: "l21", cols: 9, rows: 11, gap: "right", mix: [PL, PL, PL, PS, PS, CU, CU, OR, OR], band: [20, 23], seed: 231 },
+  { id: "l22", cols: 8, rows: 11, mix: [PL, PL, PL, PS, PS, CU, CU, OR], band: [21, 25], seed: 242 },
+  { id: "l23", cols: 9, rows: 11, gap: "left", mix: [PL, PL, PL, PL, PS, PS, CU, CU, OR], band: [22, 26], seed: 253 },
+  { id: "l24", cols: 9, rows: 12, mix: [PL, PL, PL, PL, PS, PS, PS, CU, CU, OR], band: [24, 40], seed: 264 },
 ]
 
 // Random scatter + solve under a per-level time budget. Layouts solvable in
 // fewer moves than the band are cheap to reject (BFS stops at the first win),
 // so the budget is spent probing for the rare deep ones. We keep the hardest
 // layout inside the band, falling back to the hardest found at all.
-const BUDGET_MS = Number(process.env.BUDGET_MS ?? 150000)
+const BUDGET_MS = Number(process.env.BUDGET_MS ?? 90000)
 
 const out = []
 for (const spec of SPECS) {
   const rnd = mulberry(spec.seed)
-  const gapX = Math.floor(spec.cols / 2) - 1 // centred 2-wide gap
+  const gapX =
+    spec.gap === "left" ? 1 : spec.gap === "right" ? spec.cols - 3 : Math.floor(spec.cols / 2) - 1
   let best = null // hardest inside the band
   let hardest = null // hardest solvable overall
   const t0 = Date.now()
@@ -218,8 +236,8 @@ for (const spec of SPECS) {
     process.exit(1)
   }
   console.log(`  (${trials} trials, ${((Date.now() - t0) / 1000).toFixed(0)}s)`)
-  console.log(`${spec.id} ${spec.name}: min ${best.moves} moves (band ${spec.band[0]}–${spec.band[1]}), ${best.pieces.length} pieces`)
-  out.push({ id: spec.id, name: spec.name, cols: spec.cols, rows: spec.rows, gapX, minMoves: best.moves, pieces: best.pieces })
+  console.log(`${spec.id}: min ${best.moves} moves (band ${spec.band[0]}–${spec.band[1]}), ${best.pieces.length} pieces`)
+  out.push({ id: spec.id, cols: spec.cols, rows: spec.rows, gapX, minMoves: best.moves, pieces: best.pieces })
 }
 
 const here = dirname(fileURLToPath(import.meta.url))

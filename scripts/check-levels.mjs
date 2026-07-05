@@ -127,7 +127,7 @@ for (const level of levels) {
   const min = solve(level)
   const match = min === level.minMoves
   if (!match) ok = false
-  console.log(`${level.id} ${level.name}: solver ${min}, stored ${level.minMoves} ${match ? "✓" : "✗"}`)
+  console.log(`${level.id}: solver ${min}, stored ${level.minMoves} ${match ? "✓" : "✗"}`)
 }
 
 if (!ok) {
