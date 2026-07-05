@@ -42,7 +42,7 @@ export const viewport: Viewport = {
   // the whole screen instead of leaving a coloured safe-area strip at the top
   viewportFit: 'cover',
   colorScheme: 'light',
-  themeColor: '#cdc6b8',
+  themeColor: '#ffffff',
 }
 
 export default function RootLayout({
@@ -51,8 +51,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="nn" className={`${geistSans.variable} ${geistMono.variable} bg-[#cdc6b8]`}>
-      <body className="overflow-hidden bg-[#cdc6b8] font-sans antialiased">
+    <html lang="nn" className={`${geistSans.variable} ${geistMono.variable} bg-[#ffffff]`}>
+      <body className="overflow-hidden bg-[#ffffff] font-sans antialiased">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

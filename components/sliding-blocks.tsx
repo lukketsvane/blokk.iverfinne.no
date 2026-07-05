@@ -8,7 +8,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Canvas, useThree, useFrame } from "@react-three/fiber"
-import { ContactShadows, useGLTF } from "@react-three/drei"
+import { useGLTF } from "@react-three/drei"
 import * as THREE from "three"
 
 import { audioReady, playImpact, playTone, primeBlocks, unlockAudio } from "@/lib/impact-sound"
@@ -18,12 +18,13 @@ import { getProgress, markSolved, setCurrent } from "@/lib/progression"
 import { PostFx } from "@/components/engine/PostFx"
 
 /* ------------------------------------------------------------------ */
-/*  Room look — lifted from klossete's tutorial rooms                   */
+/*  Room look — a pure white studio: every surface is white and only    */
+/*  the received shadows (key light + AO) give the tray its form.       */
 /* ------------------------------------------------------------------ */
-const BG = "#cdc6b8"
-const FLOOR_COLOR = "#c7c0b1"
-const WALL_COLOR = "#b3ab9b"
-const KEY = { x: -6, y: 18, z: -5 } // warm key light from the top of the page
+const BG = "#ffffff"
+const FLOOR_COLOR = "#ffffff"
+const WALL_COLOR = "#ffffff"
+const KEY = { x: -6, y: 18, z: -5 } // key light from the top of the page
 const CAM_FOV = 36
 const WALL_HALF_T = 0.4
 const WALL_HEIGHT = 3.0
@@ -70,122 +71,54 @@ function CameraRig({ level }: { level: Level }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Exit marker: a stippled ring of small dots where the hero lands    */
+/*  The room: one elevated white slab filling the whole view, with the */
+/*  board recessed into it as a pocket and the exit cut through as a   */
+/*  floor-level channel running up-screen. Only cast shadows and AO    */
+/*  draw the geometry.                                                 */
 /* ------------------------------------------------------------------ */
-function StippledRing({
-  position,
-  radius,
-  dots = 26,
-  dotR = 0.045,
-  color = KINDS.cylinder.color,
-}: {
-  position: [number, number, number]
-  radius: number
-  dots?: number
-  dotR?: number
-  color?: string
-}) {
-  return (
-    <group position={position}>
-      {Array.from({ length: dots }, (_, i) => {
-        const a = (i / dots) * Math.PI * 2
-        return (
-          <mesh
-            key={i}
-            position={[Math.cos(a) * radius, 0, Math.sin(a) * radius]}
-            rotation={[-Math.PI / 2, 0, 0]}
-          >
-            <circleGeometry args={[dotR, 12]} />
-            <meshStandardMaterial
-              color={color}
-              roughness={0.9}
-              metalness={0}
-              polygonOffset
-              polygonOffsetFactor={-2}
-            />
-          </mesh>
-        )
-      })}
-    </group>
-  )
-}
+const SLAB_REACH = 40 // how far the elevated surround extends off-screen
 
-/* ------------------------------------------------------------------ */
-/*  The tray: floor and walls with the exit gap. The first level is    */
-/*  open — one seamless klossete floor, no walls — so the toy greets   */
-/*  you bare; the stippled ring alone says where the cylinder goes.    */
-/* ------------------------------------------------------------------ */
-function Room({ level, open }: { level: Level; open: boolean }) {
+function Room({ level }: { level: Level }) {
   const { hx, hz } = boardHalf(level)
-  const t = WALL_HALF_T
-  const h = WALL_HEIGHT / 2
   const gapW = GAP_CELLS * CELL
   const gapX0 = level.gapX * CELL - hx
-  const gapCx = gapX0 + gapW / 2
+  const gapX1 = gapX0 + gapW
 
-  // top wall split around the exit gap; side + bottom walls run full length
-  const leftLen = gapX0 + hx // from -hx to the gap
-  const rightLen = hx - (gapX0 + gapW)
-  const tongueLen = 2 * t + EXIT_TONGUE
-  const ringZ = -hz - 2 * t - EXIT_TONGUE * 0.55
+  const R = SLAB_REACH
+  // axis-aligned slab pieces surrounding the pocket; the strip between the
+  // top-left and top-right pieces stays open — that's the exit channel
+  const slabs: [number, number, number, number][] = [
+    [-R, -hx, -R, R], // left of the pocket
+    [hx, R, -R, R], // right
+    [-hx, hx, hz, R], // below
+    [-hx, gapX0, -R, -hz], // above, left of the channel
+    [gapX1, hx, -R, -hz], // above, right of the channel
+  ]
 
   return (
     <>
-      {/* warm fill, as in klossete's tutorial rooms */}
-      <ambientLight intensity={0.5} color="#fff3e3" />
-      <pointLight position={[0, 11, 2]} intensity={14} distance={50} decay={2} color="#fff0d8" />
+      {/* neutral white fill so unshadowed surfaces read as paper-white */}
+      <ambientLight intensity={0.75} color="#ffffff" />
+      <pointLight position={[0, 11, 2]} intensity={12} distance={50} decay={2} color="#ffffff" />
 
-      {/* floor — the open room spans the whole view; the tray hugs the board */}
-      {open ? (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[60, 60]} />
-          <meshStandardMaterial color={FLOOR_COLOR} roughness={0.95} metalness={0} />
-        </mesh>
-      ) : (
-        <>
-          <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-            <planeGeometry args={[hx * 2, hz * 2]} />
-            <meshStandardMaterial color={FLOOR_COLOR} roughness={0.95} metalness={0} />
-          </mesh>
-          {/* the exit slot: floor tongue reaching out through the gap */}
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[gapCx, 0.001, -hz - tongueLen / 2]} receiveShadow>
-            <planeGeometry args={[gapW, tongueLen]} />
-            <meshStandardMaterial color={FLOOR_COLOR} roughness={0.95} metalness={0} />
-          </mesh>
-        </>
-      )}
+      {/* floor — pocket, channel and everything under the slab */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[R * 2, R * 2]} />
+        <meshStandardMaterial color={FLOOR_COLOR} roughness={0.95} metalness={0} />
+      </mesh>
 
-      {/* stippled outline where the cylinder should end up */}
-      <StippledRing position={[gapCx, 0.02, ringZ]} radius={CELL * 0.92} />
-
-      {/* walls — the top wall leaves the 2-cell exit gap open */}
-      {!open && (
-        <>
-          {leftLen > EPS && (
-            <mesh position={[-hx + leftLen / 2, h, -(hz + t)]} castShadow receiveShadow>
-              <boxGeometry args={[leftLen, WALL_HEIGHT, 2 * t]} />
-              <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
-            </mesh>
-          )}
-          {rightLen > EPS && (
-            <mesh position={[hx - rightLen / 2, h, -(hz + t)]} castShadow receiveShadow>
-              <boxGeometry args={[rightLen, WALL_HEIGHT, 2 * t]} />
-              <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
-            </mesh>
-          )}
-          <mesh position={[0, h, hz + t]} castShadow receiveShadow>
-            <boxGeometry args={[hx * 2 + 4 * t, WALL_HEIGHT, 2 * t]} />
+      {slabs.map(([x0, x1, z0, z1], i) =>
+        x1 - x0 > EPS && z1 - z0 > EPS ? (
+          <mesh
+            key={i}
+            position={[(x0 + x1) / 2, WALL_HEIGHT / 2, (z0 + z1) / 2]}
+            castShadow
+            receiveShadow
+          >
+            <boxGeometry args={[x1 - x0, WALL_HEIGHT, z1 - z0]} />
             <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
           </mesh>
-          <mesh position={[-(hx + t), h, 0]} castShadow receiveShadow>
-            <boxGeometry args={[2 * t, WALL_HEIGHT, hz * 2 + 4 * t]} />
-            <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
-          </mesh>
-          <mesh position={[hx + t, h, 0]} castShadow receiveShadow>
-            <boxGeometry args={[2 * t, WALL_HEIGHT, hz * 2 + 4 * t]} />
-            <meshStandardMaterial color={WALL_COLOR} roughness={0.92} metalness={0} />
-          </mesh>
-        </>
+        ) : null,
       )}
     </>
   )
@@ -271,12 +204,12 @@ type SceneApi = { undo: () => void; reset: () => void }
 
 function Scene({
   level,
-  open,
+
   onWin,
   apiRef,
 }: {
   level: Level
-  open: boolean
+
   onWin: (moves: number) => void
   apiRef: React.MutableRefObject<SceneApi | null>
 }) {
@@ -513,30 +446,25 @@ function Scene({
       <directionalLight
         position={[KEY.x, KEY.y, KEY.z]}
         intensity={3.0}
-        color="#fff1df"
+        color="#ffffff"
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
         shadow-camera-near={1}
         shadow-camera-far={70}
-        shadow-camera-left={-(hx + 3)}
-        shadow-camera-right={hx + 3}
-        shadow-camera-top={hz + 3}
-        shadow-camera-bottom={-(hz + 3)}
+        // cover the whole visible slab, not just the pocket — clamped shadow
+        // texels otherwise smear a fake mega-shadow across the elevated top
+        shadow-camera-left={-14}
+        shadow-camera-right={14}
+        shadow-camera-top={14}
+        shadow-camera-bottom={-14}
         shadow-bias={-0.00015}
         shadow-normalBias={0.04}
       />
-      <ContactShadows
-        position={[0, 0.001, 0]}
-        scale={Math.max(hx, hz) * 2 + 4}
-        resolution={1024}
-        far={4}
-        blur={2.4}
-        opacity={0.42}
-        color="#332b20"
-      />
-
-      <Room level={level} open={open} />
+      {/* no ContactShadows here: its accumulation plane reads as a faint grey
+          square on the pure-white floor — N8AO + the key light's real cast
+          shadows do the grounding instead */}
+      <Room level={level} />
 
       {pieces.map((p, i) => (
         <group
@@ -634,10 +562,12 @@ export default function SlidingBlocks() {
         }}
         style={{ touchAction: "none" }}
       >
-        <color attach="background" args={[BG]} />
+        {/* over-unity white so the backdrop still maps to pure #fff after
+            tone mapping (an exact 1.0 lands a few counts under white) */}
+        <color attach="background" args={[1.6, 1.6, 1.6]} />
         <CameraRig level={level} />
         <Suspense fallback={null}>
-          <Scene key={`${level.id}:${run}`} level={level} open={levelIdx === 0} onWin={onWin} apiRef={apiRef} />
+          <Scene key={`${level.id}:${run}`} level={level} onWin={onWin} apiRef={apiRef} />
         </Suspense>
         <PostFx />
       </Canvas>
