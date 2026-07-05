@@ -31,6 +31,7 @@ const WALL_HEIGHT = 3.0
 const EXIT_TONGUE = 2.6 // how far the exit slot's floor reaches past the wall
 
 const EPS = 1e-4
+const LANE_TOL = 0.08 // cells of cross-axis slop before a neighbour blocks a lane
 
 type Piece = { kind: PieceKind; rot: 0 | 1; x: number; y: number }
 
@@ -175,15 +176,19 @@ function freeInterval(pieces: Piece[], idx: number, axis: "x" | "y", level: Leve
     const q = pieces[j]
     const [qw, qh] = footprint(q.kind, q.rot)
     if (axis === "x") {
-      const overlap = p.y < q.y + qh - EPS && p.y + h > q.y + EPS
+      // a forgiving overlap margin: a free piece dragged in 2D can sit a few
+      // hundredths of a cell off-grid, and with an exact test that sliver
+      // would wall off a lane the player can see is open (≈1 mm of overlap
+      // is imperceptible; a dead drag is not)
+      const overlap = p.y < q.y + qh - LANE_TOL && p.y + h > q.y + LANE_TOL
       if (!overlap) continue
-      if (q.x >= p.x + w - EPS) hi = Math.min(hi, q.x - w)
-      else if (q.x + qw <= p.x + EPS) lo = Math.max(lo, q.x + qw)
+      if (q.x >= p.x + w - LANE_TOL) hi = Math.min(hi, q.x - w)
+      else if (q.x + qw <= p.x + LANE_TOL) lo = Math.max(lo, q.x + qw)
     } else {
-      const overlap = p.x < q.x + qw - EPS && p.x + w > q.x + EPS
+      const overlap = p.x < q.x + qw - LANE_TOL && p.x + w > q.x + LANE_TOL
       if (!overlap) continue
-      if (q.y >= p.y + h - EPS) hi = Math.min(hi, q.y - h)
-      else if (q.y + qh <= p.y + EPS) lo = Math.max(lo, q.y + qh)
+      if (q.y >= p.y + h - LANE_TOL) hi = Math.min(hi, q.y - h)
+      else if (q.y + qh <= p.y + LANE_TOL) lo = Math.max(lo, q.y + qh)
     }
   }
   return [lo, hi]
@@ -237,6 +242,13 @@ function Scene({
   const lifts = useRef<number[]>(level.pieces.map(() => 0))
 
   const dims = useMemo(() => level.pieces.map((p) => footprint(p.kind, p.rot)), [level])
+
+  // dev-only: expose the live board so end-to-end tests can assert positions
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production") {
+      ;(window as unknown as { __blokk?: unknown }).__blokk = { level, pieces }
+    }
+  }, [level, pieces])
 
   const applySnapshot = useCallback(
     (snap: number[]) => {
