@@ -60,7 +60,61 @@
     ]
   },
   {
-    "id": "l03",
+    "cols": 6,
+    "rows": 8,
+    "gapX": 1,
+    "minMoves": 6,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 1,
+        "y": 5,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 1,
+        "y": 1,
+        "rot": 0
+      },
+      {
+        "kind": "cube",
+        "x": 3,
+        "y": 6,
+        "rot": 0
+      }
+    ],
+    "id": "l03"
+  },
+  {
+    "cols": 6,
+    "rows": 8,
+    "gapX": 3,
+    "minMoves": 7,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 4,
+        "y": 4,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 2,
+        "y": 2,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 4,
+        "y": 0,
+        "rot": 0
+      }
+    ],
+    "id": "l04"
+  },
+  {
+    "id": "l05",
     "cols": 7,
     "rows": 9,
     "gapX": 2,
@@ -93,7 +147,91 @@
     ]
   },
   {
-    "id": "l04",
+    "cols": 7,
+    "rows": 9,
+    "gapX": 2,
+    "minMoves": 9,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 1,
+        "y": 6,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 0,
+        "y": 2,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 3,
+        "y": 3,
+        "rot": 1
+      },
+      {
+        "kind": "cube",
+        "x": 2,
+        "y": 1,
+        "rot": 0
+      },
+      {
+        "kind": "cube",
+        "x": 5,
+        "y": 1,
+        "rot": 0
+      }
+    ],
+    "id": "l06"
+  },
+  {
+    "cols": 8,
+    "rows": 9,
+    "gapX": 3,
+    "minMoves": 9,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 1,
+        "y": 5,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 3,
+        "y": 0,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 1,
+        "y": 7,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 6,
+        "y": 1,
+        "rot": 0
+      },
+      {
+        "kind": "cube",
+        "x": 1,
+        "y": 3,
+        "rot": 0
+      },
+      {
+        "kind": "cube",
+        "x": 0,
+        "y": 1,
+        "rot": 0
+      }
+    ],
+    "id": "l07"
+  },
+  {
+    "id": "l08",
     "cols": 7,
     "rows": 9,
     "gapX": 2,
@@ -132,7 +270,46 @@
     ]
   },
   {
-    "id": "l05",
+    "cols": 7,
+    "rows": 9,
+    "gapX": 4,
+    "minMoves": 10,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 5,
+        "y": 6,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 2,
+        "y": 2,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 0,
+        "y": 7,
+        "rot": 1
+      },
+      {
+        "kind": "cube",
+        "x": 4,
+        "y": 1,
+        "rot": 0
+      },
+      {
+        "kind": "orange",
+        "x": 4,
+        "y": 3,
+        "rot": 0
+      }
+    ],
+    "id": "l09"
+  },
+  {
+    "id": "l10",
     "cols": 7,
     "rows": 9,
     "gapX": 2,
@@ -177,7 +354,7 @@
     ]
   },
   {
-    "id": "l06",
+    "id": "l11",
     "cols": 8,
     "rows": 10,
     "gapX": 3,
@@ -228,7 +405,127 @@
     ]
   },
   {
-    "id": "l07",
+    "cols": 8,
+    "rows": 10,
+    "gapX": 3,
+    "minMoves": 12,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 6,
+        "y": 5,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 3,
+        "y": 7,
+        "rot": 1
+      },
+      {
+        "kind": "plank-long",
+        "x": 0,
+        "y": 1,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 2,
+        "y": 0,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 6,
+        "y": 1,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 4,
+        "y": 3,
+        "rot": 0
+      },
+      {
+        "kind": "cube",
+        "x": 4,
+        "y": 0,
+        "rot": 0
+      }
+    ],
+    "id": "l12"
+  },
+  {
+    "cols": 9,
+    "rows": 12,
+    "gapX": 6,
+    "minMoves": 12,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 7,
+        "y": 9,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 1,
+        "y": 7,
+        "rot": 1
+      },
+      {
+        "kind": "plank-long",
+        "x": 2,
+        "y": 0,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 7,
+        "y": 1,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 1,
+        "y": 5,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 0,
+        "y": 9,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 5,
+        "y": 3,
+        "rot": 0
+      },
+      {
+        "kind": "cube",
+        "x": 0,
+        "y": 3,
+        "rot": 0
+      },
+      {
+        "kind": "cube",
+        "x": 7,
+        "y": 6,
+        "rot": 0
+      },
+      {
+        "kind": "orange",
+        "x": 4,
+        "y": 9,
+        "rot": 0
+      }
+    ],
+    "id": "l13"
+  },
+  {
+    "id": "l14",
     "cols": 8,
     "rows": 11,
     "gapX": 3,
@@ -291,7 +588,115 @@
     ]
   },
   {
-    "id": "l08",
+    "cols": 7,
+    "rows": 10,
+    "gapX": 1,
+    "minMoves": 13,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 3,
+        "y": 5,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 1,
+        "y": 2,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 2,
+        "y": 8,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 0,
+        "y": 0,
+        "rot": 1
+      },
+      {
+        "kind": "cube",
+        "x": 0,
+        "y": 8,
+        "rot": 0
+      },
+      {
+        "kind": "orange",
+        "x": 0,
+        "y": 4,
+        "rot": 0
+      }
+    ],
+    "id": "l15"
+  },
+  {
+    "cols": 9,
+    "rows": 11,
+    "gapX": 1,
+    "minMoves": 13,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 4,
+        "y": 8,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 1,
+        "y": 0,
+        "rot": 1
+      },
+      {
+        "kind": "plank-long",
+        "x": 7,
+        "y": 6,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 4,
+        "y": 2,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 0,
+        "y": 3,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 0,
+        "y": 7,
+        "rot": 1
+      },
+      {
+        "kind": "cube",
+        "x": 4,
+        "y": 6,
+        "rot": 0
+      },
+      {
+        "kind": "cube",
+        "x": 1,
+        "y": 5,
+        "rot": 0
+      },
+      {
+        "kind": "orange",
+        "x": 6,
+        "y": 1,
+        "rot": 0
+      }
+    ],
+    "id": "l16"
+  },
+  {
+    "id": "l17",
     "cols": 7,
     "rows": 9,
     "gapX": 1,
@@ -336,7 +741,64 @@
     ]
   },
   {
-    "id": "l09",
+    "cols": 9,
+    "rows": 10,
+    "gapX": 1,
+    "minMoves": 14,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 6,
+        "y": 5,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 1,
+        "y": 2,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 3,
+        "y": 8,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 3,
+        "y": 1,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 4,
+        "y": 3,
+        "rot": 1
+      },
+      {
+        "kind": "cube",
+        "x": 0,
+        "y": 0,
+        "rot": 0
+      },
+      {
+        "kind": "cube",
+        "x": 0,
+        "y": 7,
+        "rot": 0
+      },
+      {
+        "kind": "orange",
+        "x": 3,
+        "y": 5,
+        "rot": 0
+      }
+    ],
+    "id": "l18"
+  },
+  {
+    "id": "l19",
     "cols": 8,
     "rows": 10,
     "gapX": 3,
@@ -387,7 +849,58 @@
     ]
   },
   {
-    "id": "l10",
+    "cols": 8,
+    "rows": 10,
+    "gapX": 1,
+    "minMoves": 15,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 4,
+        "y": 7,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 3,
+        "y": 2,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 1,
+        "y": 3,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 1,
+        "y": 0,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 0,
+        "y": 8,
+        "rot": 1
+      },
+      {
+        "kind": "cube",
+        "x": 6,
+        "y": 4,
+        "rot": 0
+      },
+      {
+        "kind": "orange",
+        "x": 3,
+        "y": 4,
+        "rot": 0
+      }
+    ],
+    "id": "l20"
+  },
+  {
+    "id": "l21",
     "cols": 8,
     "rows": 10,
     "gapX": 3,
@@ -444,7 +957,7 @@
     ]
   },
   {
-    "id": "l11",
+    "id": "l22",
     "cols": 8,
     "rows": 10,
     "gapX": 5,
@@ -495,7 +1008,7 @@
     ]
   },
   {
-    "id": "l12",
+    "id": "l23",
     "cols": 8,
     "rows": 10,
     "gapX": 1,
@@ -546,7 +1059,7 @@
     ]
   },
   {
-    "id": "l13",
+    "id": "l24",
     "cols": 8,
     "rows": 11,
     "gapX": 3,
@@ -603,7 +1116,64 @@
     ]
   },
   {
-    "id": "l14",
+    "cols": 8,
+    "rows": 10,
+    "gapX": 5,
+    "minMoves": 18,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 2,
+        "y": 5,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 2,
+        "y": 8,
+        "rot": 1
+      },
+      {
+        "kind": "plank-long",
+        "x": 5,
+        "y": 2,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 0,
+        "y": 2,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 1,
+        "y": 0,
+        "rot": 1
+      },
+      {
+        "kind": "cube",
+        "x": 0,
+        "y": 6,
+        "rot": 0
+      },
+      {
+        "kind": "cube",
+        "x": 0,
+        "y": 8,
+        "rot": 0
+      },
+      {
+        "kind": "orange",
+        "x": 2,
+        "y": 2,
+        "rot": 0
+      }
+    ],
+    "id": "l25"
+  },
+  {
+    "id": "l26",
     "cols": 8,
     "rows": 10,
     "gapX": 5,
@@ -660,7 +1230,127 @@
     ]
   },
   {
-    "id": "l15",
+    "cols": 8,
+    "rows": 11,
+    "gapX": 5,
+    "minMoves": 19,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 0,
+        "y": 5,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 4,
+        "y": 2,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 0,
+        "y": 9,
+        "rot": 1
+      },
+      {
+        "kind": "plank-long",
+        "x": 6,
+        "y": 1,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 0,
+        "y": 0,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 6,
+        "y": 7,
+        "rot": 0
+      },
+      {
+        "kind": "cube",
+        "x": 2,
+        "y": 7,
+        "rot": 0
+      },
+      {
+        "kind": "orange",
+        "x": 1,
+        "y": 2,
+        "rot": 0
+      }
+    ],
+    "id": "l27"
+  },
+  {
+    "cols": 9,
+    "rows": 11,
+    "gapX": 6,
+    "minMoves": 19,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 0,
+        "y": 8,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 6,
+        "y": 0,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 0,
+        "y": 0,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 4,
+        "y": 6,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 2,
+        "y": 5,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 4,
+        "y": 1,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 2,
+        "y": 9,
+        "rot": 1
+      },
+      {
+        "kind": "cube",
+        "x": 2,
+        "y": 0,
+        "rot": 0
+      },
+      {
+        "kind": "orange",
+        "x": 6,
+        "y": 8,
+        "rot": 0
+      }
+    ],
+    "id": "l28"
+  },
+  {
+    "id": "l29",
     "cols": 8,
     "rows": 11,
     "gapX": 1,
@@ -723,7 +1413,7 @@
     ]
   },
   {
-    "id": "l16",
+    "id": "l30",
     "cols": 9,
     "rows": 11,
     "gapX": 3,
@@ -786,7 +1476,7 @@
     ]
   },
   {
-    "id": "l17",
+    "id": "l31",
     "cols": 9,
     "rows": 11,
     "gapX": 6,
@@ -855,7 +1545,7 @@
     ]
   },
   {
-    "id": "l18",
+    "id": "l32",
     "cols": 9,
     "rows": 12,
     "gapX": 3,
@@ -930,7 +1620,7 @@
     ]
   },
   {
-    "id": "l19",
+    "id": "l33",
     "cols": 8,
     "rows": 11,
     "gapX": 1,
@@ -993,7 +1683,7 @@
     ]
   },
   {
-    "id": "l20",
+    "id": "l34",
     "cols": 8,
     "rows": 10,
     "gapX": 3,
@@ -1056,7 +1746,7 @@
     ]
   },
   {
-    "id": "l21",
+    "id": "l35",
     "cols": 9,
     "rows": 11,
     "gapX": 1,
@@ -1125,7 +1815,70 @@
     ]
   },
   {
-    "id": "l22",
+    "cols": 8,
+    "rows": 11,
+    "gapX": 1,
+    "minMoves": 24,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 2,
+        "y": 6,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 4,
+        "y": 2,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 6,
+        "y": 1,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 0,
+        "y": 9,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 6,
+        "y": 7,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 0,
+        "y": 0,
+        "rot": 1
+      },
+      {
+        "kind": "cube",
+        "x": 0,
+        "y": 6,
+        "rot": 0
+      },
+      {
+        "kind": "cube",
+        "x": 4,
+        "y": 0,
+        "rot": 0
+      },
+      {
+        "kind": "orange",
+        "x": 0,
+        "y": 3,
+        "rot": 0
+      }
+    ],
+    "id": "l36"
+  },
+  {
+    "id": "l37",
     "cols": 8,
     "rows": 11,
     "gapX": 3,
@@ -1188,7 +1941,7 @@
     ]
   },
   {
-    "id": "l23",
+    "id": "l38",
     "cols": 8,
     "rows": 10,
     "gapX": 3,
@@ -1249,5 +2002,137 @@
         "rot": 0
       }
     ]
+  },
+  {
+    "cols": 9,
+    "rows": 11,
+    "gapX": 3,
+    "minMoves": 30,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 2,
+        "y": 6,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 3,
+        "y": 1,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 7,
+        "y": 3,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 2,
+        "y": 9,
+        "rot": 1
+      },
+      {
+        "kind": "plank-long",
+        "x": 1,
+        "y": 0,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 5,
+        "y": 2,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 0,
+        "y": 7,
+        "rot": 0
+      },
+      {
+        "kind": "cube",
+        "x": 7,
+        "y": 8,
+        "rot": 0
+      },
+      {
+        "kind": "orange",
+        "x": 4,
+        "y": 6,
+        "rot": 0
+      }
+    ],
+    "id": "l39"
+  },
+  {
+    "cols": 9,
+    "rows": 12,
+    "gapX": 1,
+    "minMoves": 36,
+    "pieces": [
+      {
+        "kind": "cylinder",
+        "x": 5,
+        "y": 3,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 3,
+        "y": 10,
+        "rot": 1
+      },
+      {
+        "kind": "plank-long",
+        "x": 4,
+        "y": 0,
+        "rot": 1
+      },
+      {
+        "kind": "plank-long",
+        "x": 1,
+        "y": 6,
+        "rot": 0
+      },
+      {
+        "kind": "plank-long",
+        "x": 7,
+        "y": 2,
+        "rot": 0
+      },
+      {
+        "kind": "plank-short",
+        "x": 5,
+        "y": 7,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 3,
+        "y": 5,
+        "rot": 1
+      },
+      {
+        "kind": "plank-short",
+        "x": 0,
+        "y": 0,
+        "rot": 0
+      },
+      {
+        "kind": "cube",
+        "x": 0,
+        "y": 4,
+        "rot": 0
+      },
+      {
+        "kind": "orange",
+        "x": 2,
+        "y": 2,
+        "rot": 0
+      }
+    ],
+    "id": "l40"
   }
 ]
